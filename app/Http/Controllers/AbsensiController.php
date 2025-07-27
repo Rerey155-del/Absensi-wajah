@@ -32,13 +32,13 @@ class AbsensiController extends Controller
 
         $absen = Absensi::create([
             'nama' => $request->nama,
-            'waktu_absen' => now(),
+
             'gambar' => $gambarPath
         ]);
 
         return response()->json([
             'nama' => $absen->nama,
-            'waktu_absen' => $absen->waktu_absen,
+
             'gambar' => asset($absen->gambar)
         ]);
     }

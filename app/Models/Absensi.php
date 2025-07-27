@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Absensi extends Model
 {
-   protected $fillable = ['nama', 'waktu_absen', 'gambar'];
+   protected $fillable = ['nama', 'gambar'];
 
 }
