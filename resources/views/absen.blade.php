@@ -22,6 +22,18 @@
         }
     </script>
 
+    <style>
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            min-width: 100%;
+            min-height: 100%;
+            objecy-fit: cover;
+            z-index: -10;
+        }
+    </style>
+
     {{-- TensorFlow.js & BlazeFace --}}
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7"></script>
@@ -32,8 +44,11 @@
 
 <body class="bg-base-200 text-base-content font-sans min-h-screen">
 
+    <video id="bg-video" autoplay muted loop playsinline>
+        <source src="{{ asset('videos/cover.mp4') }}" type="video/mp4">Browser anda tidak mendukung untuk background ini
+    </video>
     <div class="container mx-auto p-6">
-        <h2 class="text-3xl font-bold mb-6 text-center">📷 Absensi Wajah (Deteksi Otomatis)</h2>
+        <h2 class="text-3xl font-bold mb-6 text-center text-white">Absensi Wajah (Deteksi Otomatis)</h2>
 
         {{-- Kamera --}}
         <div class="flex justify-center">
@@ -43,8 +58,8 @@
         </div>
 
         {{-- Preview --}}
-        <div class="flex flex-col items-center mt-10 space-y-2">
-            <h4 class="font-semibold mb-2">📸 Gambar Preview:</h4>
+        <div class="flex flex-col items-center mt-10 space-y-2 text-white">
+            <h4 class="font-semibold mb-2">Gambar Preview:</h4>
             <img id="preview" width="320" class="border rounded-lg shadow-md" alt="Preview akan muncul di sini" />
         </div>
     </div>
@@ -93,7 +108,7 @@
                     video.pause();
 
                     Swal.fire({
-                        title: '✍️ Masukkan Nama',
+                        title: 'Masukkan Nama',
                         input: 'text',
                         inputLabel: 'Nama:',
                         inputPlaceholder: 'Contoh: Budi',
@@ -137,11 +152,11 @@
                 })
                 .then(res => res.json())
                 .then(() => {
-                    Swal.fire('✅ Sukses!', 'Absensi berhasil disimpan.', 'success')
+                    Swal.fire('Sukses!', 'Absensi berhasil disimpan.', 'success')
                         .then(() => simpanPreviewLaluReload());
                 })
                 .catch(() => {
-                    Swal.fire('❌ Gagal!', 'Terjadi kesalahan saat menyimpan absensi.', 'error')
+                    Swal.fire('Gagal!', 'Terjadi kesalahan saat menyimpan absensi.', 'error')
                         .then(() => simpanPreviewLaluReload());
                 });
         }
