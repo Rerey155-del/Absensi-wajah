@@ -2,8 +2,9 @@
 <html lang="id">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Absensi Wajah</title>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
@@ -46,12 +47,11 @@
 </head>
 
 <body class="bg-base-200 text-base-content font-sans min-h-screen">
-
     <video id="bg-video" autoplay muted loop playsinline>
         <source src="{{ asset('videos/cover.mp4') }}" type="video/mp4">Browser anda tidak mendukung untuk background ini
     </video>
     <div class="container mx-auto p-6">
-        <h2 class="text-3xl font-bold mb-6 text-center text-white">Absensi Wajah (Deteksi Otomatis)</h2>
+        <h2 class="text-3xl font-bold mb-6 text-center text-white">Absensi Wajah</h2>
 
         <!-- Kamera -->
         <div class="flex justify-center relative">
@@ -63,7 +63,8 @@
         <!-- Preview -->
         <div class="flex flex-col items-center mt-10 space-y-2 text-white">
             <h4 class="font-semibold mb-2">Gambar Preview:</h4>
-            <img id="preview" width="320" class="border rounded-lg shadow-md" alt="Preview akan muncul di sini" />
+            <img id="preview" width="320" alt="Preview akan muncul di sini"
+                class="border rounded-lg shadow-md"></img>
         </div>
     </div>
 
@@ -77,12 +78,15 @@
         let gambarBase64 = '';
         let model = null;
 
-        // Load model immediately
         async function loadModel() {
             try {
                 model = await blazeface.load();
             } catch (error) {
-                Swal.fire('❌ Gagal Memuat Model!', 'Gagal memuat model deteksi wajah.', 'error');
+                Swal.fire({
+                    title: 'Gagal Memuat Model',
+                    text: 'Gagal memuat model deteksi wajah.',
+                    icon: 'error'
+                });
             }
         }
 
@@ -91,7 +95,6 @@
             if (savedImage) {
                 preview.src = savedImage;
             }
-            // Start loading model as soon as possible
             loadModel();
         });
 
@@ -105,16 +108,18 @@
                 });
                 video.srcObject = stream;
                 await video.play();
-                // Start detection as soon as video is ready
                 detectFace();
             } catch (error) {
-                Swal.fire('❌ Kamera Gagal!', 'Pastikan kamera Anda tersedia dan diizinkan.', 'error');
+                Swal.fire({
+                    title: 'Kamera Gagal',
+                    text: 'Pastikan kamera Anda tersedia dan diizinkan.',
+                    icon: 'error'
+                });
             }
         }
 
         async function detectFace() {
             if (!model) {
-                // Wait for model to load if not ready
                 await loadModel();
             }
 
@@ -124,7 +129,6 @@
                 const predictions = await model.estimateFaces(video, false);
 
                 if (predictions.length > 0) {
-                    // Capture clean image without landmarks
                     ctxCapture.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
                     gambarBase64 = captureCanvas.toDataURL('image/png');
                     preview.src = gambarBase64;
@@ -176,12 +180,18 @@
                 })
                 .then(res => res.json())
                 .then(() => {
-                    Swal.fire('Sukses!', 'Absensi berhasil disimpan.', 'success')
-                        .then(() => simpanPreviewLaluReload());
+                    Swal.fire({
+                        title: 'Sukses!',
+                        text: 'Absensi berhasil disimpan.',
+                        icon: 'success'
+                    }).then(() => simpanPreviewLaluReload());
                 })
                 .catch(() => {
-                    Swal.fire('Gagal!', 'Terjadi kesalahan saat menyimpan absensi.', 'error')
-                        .then(() => simpanPreviewLaluReload());
+                    Swal.fire({
+                        title: 'Gagal!',
+                        text: 'Terjadi kesalahan saat menyimpan absensi.',
+                        icon: 'error'
+                    }).then(() => simpanPreviewLaluReload());
                 });
         }
 
@@ -190,10 +200,8 @@
             location.reload();
         }
 
-        // Start camera immediately
         startCamera();
     </script>
-
 </body>
 
 </html>
