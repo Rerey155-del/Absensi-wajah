@@ -7,7 +7,7 @@
     <title>Absensi Wajah</title>
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
-    {{-- Tailwind CSS + DaisyUI via CDN --}}
+    <!-- Tailwind CSS + DaisyUI via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,16 +29,19 @@
             left: 0;
             min-width: 100%;
             min-height: 100%;
-            objecy-fit: cover;
+            object-fit: cover;
             z-index: -10;
         }
     </style>
 
-    {{-- TensorFlow.js & BlazeFace --}}
+    <!-- TensorFlow.js & BlazeFace -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.14.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@4.14.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.14.0"></script>
 
-    {{-- SweetAlert2 --}}
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
@@ -50,14 +53,14 @@
     <div class="container mx-auto p-6">
         <h2 class="text-3xl font-bold mb-6 text-center text-white">Absensi Wajah (Deteksi Otomatis)</h2>
 
-        {{-- Kamera --}}
-        <div class="flex justify-center">
+        <!-- Kamera -->
+        <div class="flex justify-center relative">
             <video id="video" width="640" height="480" autoplay muted
                 class="rounded-lg shadow-lg border"></video>
-            <canvas id="canvas" width="640" height="480" class="hidden"></canvas>
+            <canvas id="captureCanvas" width="640" height="480" class="hidden"></canvas>
         </div>
 
-        {{-- Preview --}}
+        <!-- Preview -->
         <div class="flex flex-col items-center mt-10 space-y-2 text-white">
             <h4 class="font-semibold mb-2">Gambar Preview:</h4>
             <img id="preview" width="320" class="border rounded-lg shadow-md" alt="Preview akan muncul di sini" />
@@ -66,45 +69,66 @@
 
     <script>
         const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const captureCanvas = document.getElementById('captureCanvas');
+        const ctxCapture = captureCanvas.getContext('2d');
         const preview = document.getElementById('preview');
 
         let wajahTerdeteksi = false;
         let gambarBase64 = '';
+        let model = null;
+
+        // Load model immediately
+        async function loadModel() {
+            try {
+                model = await blazeface.load();
+            } catch (error) {
+                Swal.fire('❌ Gagal Memuat Model!', 'Gagal memuat model deteksi wajah.', 'error');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedImage = localStorage.getItem('previewImage');
             if (savedImage) {
                 preview.src = savedImage;
             }
+            // Start loading model as soon as possible
+            loadModel();
         });
 
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: true
+                    video: {
+                        width: 640,
+                        height: 480
+                    }
                 });
                 video.srcObject = stream;
                 await video.play();
+                // Start detection as soon as video is ready
+                detectFace();
             } catch (error) {
                 Swal.fire('❌ Kamera Gagal!', 'Pastikan kamera Anda tersedia dan diizinkan.', 'error');
             }
         }
 
         async function detectFace() {
-            const model = await blazeface.load();
+            if (!model) {
+                // Wait for model to load if not ready
+                await loadModel();
+            }
 
-            const detectOnce = async () => {
+            const detectLoop = async () => {
                 if (wajahTerdeteksi) return;
 
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 const predictions = await model.estimateFaces(video, false);
 
                 if (predictions.length > 0) {
-                    wajahTerdeteksi = true;
-                    gambarBase64 = canvas.toDataURL('image/png');
+                    // Capture clean image without landmarks
+                    ctxCapture.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+                    gambarBase64 = captureCanvas.toDataURL('image/png');
                     preview.src = gambarBase64;
+                    wajahTerdeteksi = true;
                     video.pause();
 
                     Swal.fire({
@@ -131,11 +155,11 @@
                         }
                     });
                 } else {
-                    setTimeout(detectOnce, 1000);
+                    requestAnimationFrame(detectLoop);
                 }
             };
 
-            detectOnce();
+            detectLoop();
         }
 
         function submitAbsensi(nama) {
@@ -166,7 +190,8 @@
             location.reload();
         }
 
-        startCamera().then(detectFace);
+        // Start camera immediately
+        startCamera();
     </script>
 
 </body>
